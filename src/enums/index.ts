@@ -5,8 +5,9 @@ export enum sidebarName {
   'User' = '账户设置',
   'Developer' = '开发者选项',
   'Cycles' = '我的Cycles',
+  'CyclesDetail' = '明细记录',
   'Renewal' = '续费管理',
-  'Order' = '我的账单',
+  'Order' = '我的订单',
 }
 export enum resourceStatus {
   '创建中' = 0,
@@ -54,4 +55,9 @@ export enum boundDomainStatusColor {
   'bg-[#00C900]' = 1,
   'bg-[#F52222]' = 2,
   'bg-[#008FFF]' = 3
+}
+
+export enum renewalStatus {
+  '服务中' = 0,
+  '已停止' = 1,
 }

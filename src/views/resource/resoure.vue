@@ -21,13 +21,19 @@
                 <div class="text-[14px]">
                   <!-- 运行中 -->
                   <div v-if="item.status === 1">
-                     <div class="tips-css" @click="operate(item.id)">访问实例</div>
+                    <div class="tips-css" @click="operate(item.id)">访问实例</div>
                     <div class="tips-css" @click="reStart(item.id)">重启实例</div>
                     <div class="tips-css" @click="instanceStop(item.id)">关闭实例</div>
+                    <div class="tips-css" @click="resetVM(item)">重置实例</div>
+                    <div class="tips-css" @click="changeName(item)">修改名称</div>
                     <div class="tips-css" @click="configurationMapping(item.id)">配置映射</div>
                   </div>
                   <!-- 已关闭 -->
-                  <div v-else-if="item.status === 4" class="tips-css" @click="instanceStart(item.id)">启动实例</div>
+                  <div v-else-if="item.status === 4">
+                    <div class="tips-css" @click="instanceStart(item.id)">启动实例</div>
+                    <div class="tips-css" @click="resetVM(item)">重置实例</div>
+                    <div class="tips-css" @click="changeName(item)">修改名称</div>
+                  </div>
                   <!-- 已过期 -->
                   <div v-else-if="item.status === 8" class="tips-css" @click="instanceDelete(item.id)">删除实例</div>
                   <div v-else class="tips-css-none">暂无操作</div>
@@ -72,10 +78,12 @@
         </div>
       </div>
     </div>
-    <Footer></Footer>
+    <!-- <Footer></Footer> -->
   </div>
   <CreateModal :createVisible="createVisible" @handleCancelCreate="createVisible = false;" @handleDone="handleDone">
   </CreateModal>
+  <resetVMModal v-if="resetImageId!=0" :visible="resetVisible" :id="handleId" :resetImageId="resetImageId" @handleCancel="resetVisible = false;" @handleDone="getInstanceList"></resetVMModal>
+  <changeNameModal v-if="handleId!=''" :visible="changeVisible" :id="handleId" @handleCancel="changeVisible = false;" @handleDone="getInstanceList"></changeNameModal>
 </template>
 
 <script setup lang="ts">
@@ -84,6 +92,8 @@ import { message } from "ant-design-vue";
 import { transTimestamp } from '@/utils/dateUtil';
 import { resourceStatus, resourceStatusColor } from '@/enums/index'
 import Footer from "./footer.vue"
+import resetVMModal from "./components/resetVMModal.vue";
+import changeNameModal from "./components/changeNameModal.vue";
 import Echarts from "@/components/Echarts.vue";
 import {
     apiGetInstanceList,
@@ -91,13 +101,16 @@ import {
     apiInstanceStop,
     apiInstanceDelete,
     apiInstanceRestart,
-    apiInstanceVncURL
+    apiInstanceVncURL,
 } from '@/apis/compute';
-
 import CreateModal from "@/views/resource/create.vue";
+
 const instanceList = ref([]);
-const headRef = ref();
 const createVisible = ref(false);
+const resetVisible = ref(false);
+const resetImageId = ref(0);
+const changeVisible = ref(false);
+const handleId = ref('');
 const echartsWidth = ref('');
 let isLoop = ref()
 
@@ -117,7 +130,6 @@ const operate = (id: string) => {
 // 创建实例
 const showCreateModal = () => {
   createVisible.value = true
-  // headRef.value.showCreateModal();
 }
 
 //启动实例
@@ -160,6 +172,22 @@ const configurationMapping = (id: string) => {
   emit('changeTabKey')
 }
 
+// 重置虚拟机
+const resetVM = async(item: any) => {
+  console.log('重置虚拟机', item)
+  resetVisible.value = true;
+  resetImageId.value = item.imageId;
+  handleId.value = item.id;
+}
+
+// 修改名称
+const changeName = async(item: any) => {
+  console.log('修改名称:', item)
+  changeVisible.value = true;
+  handleId.value = item.id;
+  
+}
+
 //删除实例
 const instanceDelete = async (id: string) => {
 
@@ -182,10 +210,10 @@ const getInstanceList = async () => {
       let cpuArr = []
       let memoryArr = []
       cpuArr = item.stats.map((en: any) => {
-        return en.cpuUsage
+        return en.cpuUsage 
       })
       memoryArr = item.stats.map((en: any) => {
-        return en.memoryUsage
+        return en.memoryUsage 
       })
       return { cpuArr, memoryArr, ...item }
     })
@@ -209,6 +237,7 @@ const handleDone = () => {
 }
 
 onMounted(() => {
+  getInstanceList()
   // 开启循环去实时调实例的状态
   isLoop.value = setInterval(() => {
     getInstanceList()

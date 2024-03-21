@@ -2,25 +2,16 @@
 <template>
   <div class="bg-[#FFFFFF]">
     <div class="top-css">
-      <a-tabs v-model:activeKey="activeKey">
+      <a-tabs v-model:activeKey="activeKey" @change="handleTabs">
         <a-tab-pane key="1" tab="云服务器">
           <Resoure @changeTabKey="changeTabKey"></Resoure>
         </a-tab-pane>
         <a-tab-pane key="2" tab="网络映射">
-          <NetworkMap></NetworkMap>
+          <NetworkMap ref="networkRef"></NetworkMap>
         </a-tab-pane>
       </a-tabs>
       <div class="flex justify-end absolute w-[36px] top-[18px] right-[40px]">
-        <a-tooltip placement="bottom" color="#FFFFFF">
-          <template #title>
-            <div class="text-[14px]">
-              <div class="tips-css" @click="goUser">账户设置</div>
-              <div class="tips-css" @click="goDeveloper">开发者选项</div>
-              <div class="tips-css" @click="logout">退出</div>
-            </div>
-          </template>
-          <img src="@/assets/images/user-logo.png" class="h-[36px] w-[36px] cursor-pointer " />
-        </a-tooltip>
+        <HeaderUser></HeaderUser>
       </div>
     </div>
   </div>
@@ -31,12 +22,13 @@ import { watch, ref } from 'vue';
 import { useRouter } from "vue-router";
 import NetworkMap from './networkMap.vue';
 import Resoure from "./resoure.vue";
+import HeaderUser from '@/components/HeaderUser.vue';
 const router = useRouter();
 const curBarName = ref(router.currentRoute.value.name);
 const createVisible = ref(false);
 
 const activeKey = ref('1');
-
+const networkRef = ref();
 const emit = defineEmits(["handleDone"])
 
 // 创建实例
@@ -44,21 +36,16 @@ const showCreateModal = () => {
   createVisible.value = true;
 }
 
-const goUser = () => {
-  window.open("/dashboard/user");
-}
-
-const goDeveloper = ()=>{
-  window.open("/dashboard/developer");
-}
-
-const logout = () => {
-  localStorage.removeItem('token')
-  router.push('/login')
-}
-
 const changeTabKey = ()=>{
   activeKey.value = '2'
+}
+
+const handleTabs = () => {
+  if (activeKey.value == '2') { 
+    if (networkRef.value) {
+      networkRef.value.getNetworkMapList();
+    }
+  }
 }
 
 watch(() => router.currentRoute.value,

@@ -1,6 +1,6 @@
 <template>
-  <Header />
-  <div class="p-[20px] scroll-contain-h">
+    <Header :breadCrumbInfo="breadCrumbInfo" />
+    <div class="p-[20px] scroll-contain-h">
     <div class="bg-[#FFFFFF] rounded-[2px] p-[20px]">
       <a-table :columns="tableColumns" :data-source="tableData" :pagination="pagination" >
         <template #bodyCell="{ column, record }">
@@ -13,40 +13,37 @@
   </div>
 </template>
 <script setup lang="ts">
-import { onMounted, reactive, ref } from "vue";
+import { onMounted, reactive, ref } from 'vue';
+import { useRouter} from 'vue-router'
 import Header from "@/components/Header.vue";
+import { sidebarName } from '@/enums/index';
 import { transTimestamp } from '@/utils/dateUtil';
+import { apiGetTransactionList } from '@/apis/cycles'
+import { message } from 'ant-design-vue';
 import { formatAmount } from '@/utils/index'
-import { apiGetOrderList } from '@/apis/order'
-import { message } from "ant-design-vue";
+
+const router = useRouter()
+const curBarName = ref(router.currentRoute.value.name);
+const breadCrumbInfo = ref<any>([]);
 
 
 const tableData = ref([])
 const tableColumns = reactive([
   {
-    title: '订单号',
-    dataIndex: 'orderNo',
-    key: 'orderNo',
-  },
-  {
-    title: '名称',
-    dataIndex: 'productName',
-    key: 'productName',
-  },
-  {
-    title: '描述',
-    dataIndex: 'productDesc',
-    key: 'productDesc',
+    title: '操作名称',
+    dataIndex: 'operation',
+    key: 'operation',
   },
   {
     title: '金额',
     dataIndex: 'cycle',
     key: 'cycle',
+    // customRender: ({ text }) =>  formatAmount(text),
   },
   {
-    title: '购买时间',
-    dataIndex: 'createTime',
-    key: 'createTime',
+    title: '操作时间',
+    dataIndex: 'operationTime',
+    key: 'operationTime',
     customRender: ({ text: date }) =>  transTimestamp(date*1),
   }
 ])
@@ -79,7 +76,7 @@ const getTableData = async () => {
     page: pagination.current,
     size: pagination.pageSize
   }
-  const res = await apiGetOrderList(params);
+  const res = await apiGetTransactionList(params);
   if (res.code == 200) {
     tableData.value = res.data.data;
     pagination.total = res.data.total
@@ -89,8 +86,19 @@ const getTableData = async () => {
 }
 
 onMounted(() => {
+  breadCrumbInfo.value = [
+    {
+      breadcrumbName: sidebarName['Cycles'],
+      path:'/dashboard/cycles'
+    },
+    {
+      breadcrumbName: sidebarName[curBarName.value],
+      path:''
+    },
+  ]
+
   getTableData();
-});
+})
 </script>
 <style lang="less" scoped>
 

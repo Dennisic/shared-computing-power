@@ -29,8 +29,11 @@ export function apiGetDuration() {
 interface instanceParams {
   specId: number,
   imageId: number,
-  duration: number,
+  // duration: number,
   name: string,
+  publicKey: string,
+  password: string,
+  dockerCompose?: string,//暂不传
 }
 export function apiPostInstance(params: instanceParams) {
   return httpRequest({
@@ -48,6 +51,14 @@ export function apiGetInstanceList() {
   });
 }
 
+//创建映射可用的实例列表
+export function apiGetUseInstanceList() {
+  return httpRequest({
+    url: "/v1/instance?status=1",
+    method: "get",
+  });
+}
+
 //获取实例
 export function apiGetInstance(id: string) {
   return httpRequest({
@@ -61,7 +72,7 @@ export function apiInstanceStart(id: string) {
   return httpRequest({
     url: `/v1/instance/${id}/start`,
     method: "put",
-    data:{}
+    data: {}
   });
 }
 
@@ -70,7 +81,7 @@ export function apiInstanceStop(id: string) {
   return httpRequest({
     url: `/v1/instance/${id}/stop`,
     method: "put",
-    data:{}
+    data: {}
   });
 }
 
@@ -87,7 +98,7 @@ export function apiInstanceRestart(id: string) {
   return httpRequest({
     url: `/v1/instance/${id}/restart`,
     method: "put",
-    data:{}
+    data: {}
   });
 }
 
@@ -95,6 +106,44 @@ export function apiInstanceRestart(id: string) {
 export function apiInstanceVncURL(id: string) {
   return httpRequest({
     url: `/v1/instance/${id}/vnc`,
+    method: "get",
+  });
+}
+
+// 重置实例
+export function apiResetVm(id: string, params: resetVmParams) {
+  return httpRequest({
+    url: `/v1/instance/${id}/recreate`,
+    method: "put",
+    data: params
+  });
+}
+
+interface resetVmParams {
+  imageId: number,
+  publicKey: string,
+  password: string,
+  // 非必填
+  dockerCompose?: string
+}
+
+// 修改实例名称
+export function apiRenameInstance(id: string, params: nameParams) {
+  return httpRequest({
+    url: `/v1/instance/${id}/rename`,
+    method: "put",
+    data: params
+  });
+}
+
+interface nameParams {
+  name: string
+}
+
+// 实例的价格和时长，根据规格来的
+export function apiInstancePrice(specId: string) {
+  return httpRequest({
+    url: `/v1/compute/spec/price?specId=${specId}`,
     method: "get",
   });
 }
